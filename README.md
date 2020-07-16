@@ -1,3 +1,8 @@
+# O QUE É ISTO
+- Material produzido pelo [Jérôme Petazzoni](https://twitter.com/jpetazzo)
+- A versão online está [aqui](https://container.training/swarm-selfpaced.yml.html#1)
+- Para usar, abra o [swarm-selfpaced.yml.html](https://github.com/rzonzini/DCA/blob/orchestration/swarm-selfpaced.yml.html) no navegador
+
 # MarkMaker
 
 General principles:
