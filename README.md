@@ -3,6 +3,48 @@
 - A versão online está [aqui](https://container.training/swarm-selfpaced.yml.html#1)
 - Para usar, abra o [swarm-selfpaced.yml.html](https://github.com/rzonzini/DCA/blob/orchestration/swarm-selfpaced.yml.html) no navegador
 
+# RESUMO
+
+## Antes do capítulo *Global schedule*
+
+- Precisamos ter um cluster rodando, claro!
+`docker swarm init --advertise-addr $(hostname -i)`
+`docker swarm join-token worker`
+`docker swarm join-token manager`
+
+- Clone da apliação de exemplo
+`git clone https://github.com/jpetazzo/container.training`
+
+- Criando um REGISTRY
+`docker service create --name registry --publish 5000:5000 registry`
+
+- Colocando as imagens do projeto no REGISTRY
+`
+cd ~/container.training/dockercoins
+export REGISTRY=127.0.0.1:5000
+export TAG=v0.1
+for SERVICE in hasher rng webui worker; do \
+  docker build -t $REGISTRY/$SERVICE:$TAG ./$SERVICE; \
+  docker push $REGISTRY/$SERVICE; \
+done
+`
+- Criando uma rede para a stack da aplicação do curso exemplo
+`docker network create --driver overlay dockercoins`
+
+- Rodando a aplicação
+`
+docker service create --network dockercoins --name redis redis
+for SERVICE in hasher rng webui worker; do \
+  docker service create --network dockercoins --detach=true \
+  --name $SERVICE $REGISTRY/$SERVICE:$TAG; \
+done
+docker service update webui --publish-add 8000:80
+`
+
+- Escalando a aplicação *webui*
+
+`docker service update --replicas 10`
+
 # MarkMaker
 
 General principles:
