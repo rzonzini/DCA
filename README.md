@@ -7,7 +7,7 @@
 
 ## Antes do capítulo *Global schedule*
 
-1. Precisamos ter um cluster rodando, claro!
+##### 1. Precisamos ter um cluster rodando, claro!
 
 ```
 docker swarm init --advertise-addr $(hostname -i)`
@@ -15,19 +15,19 @@ docker swarm join-token worker`
 docker swarm join-token manager`
 ```
 
-2. Clonando a apliação de exemplo
+##### 2. Clonando a apliação de exemplo
 
 ```
 git clone https://github.com/jpetazzo/container.training
 ```
 
-3. Criando um REGISTRY
+##### 3. Criando um REGISTRY
 
 ```
 docker service create --name registry --publish 5000:5000 registry
 ```
 
-4. Colocando as imagens do projeto no REGISTRY
+##### 4. Colocando as imagens do projeto no REGISTRY
 
 ```
 cd ~/container.training/dockercoins
@@ -39,13 +39,13 @@ for SERVICE in hasher rng webui worker; do \
 done
 ```
 
-5. Criando uma rede para a stack da aplicação do curso exemplo
+##### 5. Criando uma rede para a stack da aplicação do curso exemplo
 
 ```
 docker network create --driver overlay dockercoins
 ```
 
-6. Rodando a aplicação
+##### 6. Rodando a aplicação
 
 ```
 docker service create --network dockercoins --name redis redis
@@ -56,7 +56,7 @@ done
 docker service update webui --publish-add 8000:80
 ```
 
-7. Escalando a aplicação *webui*
+##### 7. Escalando a aplicação *webui*
 
 ```
 docker service update --replicas 10
@@ -64,9 +64,9 @@ docker service update --replicas 10
 
 ## Global scheduling (página 192)
 
-1. Escalando o servico *rng* para ter uma task em execução em cada node
+##### 1. Escalando o servico *rng* para ter uma task em execução em cada node
 
-+ Removendo o o serviço criado em [Rodando a aplicação](#6. Rodando a aplicação)
++ Removendo o serviço criado em [Rodando a aplicação](#6. Rodando a aplicação)
 
 # MarkMaker
 
