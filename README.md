@@ -15,7 +15,7 @@ docker swarm join-token worker`
 docker swarm join-token manager`
 ```
 
-2. Clone da apliação de exemplo
+2. Clonando a apliação de exemplo
 
 ```
 git clone https://github.com/jpetazzo/container.training
@@ -61,6 +61,12 @@ docker service update webui --publish-add 8000:80
 ```
 docker service update --replicas 10
 ```
+
+## Global scheduling (página 192)
+
+1. Escalando o servico *rng* para ter uma task em execução em cada node
+
++ Removendo o o serviço criado em [Rodando a aplicação](#6. Rodando a aplicação)
 
 # MarkMaker
 
