@@ -66,7 +66,7 @@ docker service update --replicas 10
 
 ##### 1. Escalando o servico *rng* para ter uma task em execução em cada node
 
-+ Removendo o serviço criado em [Rodando a aplicação](#6. Rodando a aplicação)
++ Removendo o serviço criado em [Rodando a aplicação](#6-rodando-a-aplica%C3%A7%C3%A3o)
 
 # MarkMaker
 
