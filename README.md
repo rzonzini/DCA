@@ -7,7 +7,7 @@
 
 ## Antes do capítulo *Global schedule*
 
-- Precisamos ter um cluster rodando, claro!
+1. Precisamos ter um cluster rodando, claro!
 
 ```
 docker swarm init --advertise-addr $(hostname -i)`
@@ -15,19 +15,19 @@ docker swarm join-token worker`
 docker swarm join-token manager`
 ```
 
-- Clone da apliação de exemplo
+2. Clone da apliação de exemplo
 
 ```
 git clone https://github.com/jpetazzo/container.training
 ```
 
-- Criando um REGISTRY
+3. Criando um REGISTRY
 
 ```
 docker service create --name registry --publish 5000:5000 registry
 ```
 
-- Colocando as imagens do projeto no REGISTRY
+4. Colocando as imagens do projeto no REGISTRY
 
 ```
 cd ~/container.training/dockercoins
@@ -39,13 +39,13 @@ for SERVICE in hasher rng webui worker; do \
 done
 ```
 
-- Criando uma rede para a stack da aplicação do curso exemplo
+5. Criando uma rede para a stack da aplicação do curso exemplo
 
 ```
 docker network create --driver overlay dockercoins
 ```
 
-- Rodando a aplicação
+6. Rodando a aplicação
 
 ```
 docker service create --network dockercoins --name redis redis
@@ -56,7 +56,7 @@ done
 docker service update webui --publish-add 8000:80
 ```
 
-- Escalando a aplicação *webui*
+7. Escalando a aplicação *webui*
 
 ```
 docker service update --replicas 10
