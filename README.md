@@ -131,15 +131,16 @@ docker exec -it $(docker ps -q --filter label=com.docker.swarm.service.name=debu
 ```
 
 #### 3. Sobre VIP e DNSRR (p. 243)
+
 1. Instalando algumas ferramentas
 ```
 apk add --update curl apache2-utils drill
 ```
 2. `drill rng` vai retornar uma saída igual ao do *dig* mostrando o endereço VIP do serviço *rng*;
 3. O serviço pode ser publicado usando VIP ou DNSRR:
-+ com VIP, temos um IP virtual e um balanceador de carga baseado no IPVS;
-+ com o DNSRR, o nome do serviço nos endereços IP nos nodes onde existem suas tarefas; e
-+ Use `docker service create --endpoint-mode [VIP|DNSRR]` para ecolher entre os dois modos.
+   - com VIP, temos um IP virtual e um balanceador de carga baseado no IPVS;
+   - com o DNSRR, o nome do serviço nos endereços IP nos nodes onde existem suas tarefas; e
+   - Use `docker service create --endpoint-mode [VIP|DNSRR]` para ecolher entre os dois modos.
 4. `drill tasks.rng` retorna o endereço IP de todos os container onde o *rng* está sendo executado;
 
 
