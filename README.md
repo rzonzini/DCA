@@ -62,9 +62,9 @@ docker service update webui --publish-add 8000:80
 docker service update --replicas 10
 ```
 
-## Global scheduling (página 192)
+## Global scheduling (p. 192)
 
-#### 1. Escalando o servico *rng* para ter uma task em execução em cada node
+#### 1. Escalando o servico *rng* para ter uma task em execução em cada node (p. 199)
 
 - Removendo o serviço criado em [Rodando a aplicação](#6-rodando-a-aplica%C3%A7%C3%A3o)
 ```
@@ -73,6 +73,30 @@ docker service rm rng
 + Recriando o serviço com o *global scheduling*
 ```
 docker service create --name rng --network dockercoins --mode global $REGISTRY/rng:$TAG
+```
+
+#### 2. Removendo todos os serviços (p. 201)
+```
+docker service ls -q | xargs docker service rm
+```
+
+## Swarm Stack (p. 212)
+
+#### 1. Subindo o serviço do REGISTRY como uma stack (p. 217)
+```
+docker stack deploy --compose-file registry.yml registry
+```
+
+#### 2. Usando o *compose* para fazer o build e subir as imagens para o REGISTRY (p. 221)
+```
+cd ./container.training/stacks
+docker-compose -f dockercoins.yml build
+docker-compose -f dockercoins.yml push
+```
+
+#### 3. Fazendo o deploy da stack
+```
+docker stack deploy --compose-file dockercoins.yml dockercoins
 ```
 
 # MarkMaker
