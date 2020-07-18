@@ -5,7 +5,7 @@
 
 # RESUMO
 
-## Antes do capítulo *Global schedule*
+## 1. Antes do capítulo *Global schedule*
 
 #### 1. Precisamos ter um cluster rodando, claro!
 
@@ -62,7 +62,7 @@ docker service update webui --publish-add 8000:80
 docker service update --replicas 10
 ```
 
-## Global scheduling (p. 192)
+## 2. Global scheduling (p. 192)
 
 #### 1. Escalando o servico *rng* para ter uma task em execução em cada node (p. 199)
 
@@ -80,7 +80,7 @@ docker service create --name rng --network dockercoins --mode global $REGISTRY/r
 docker service ls -q | xargs docker service rm
 ```
 
-## Swarm Stack (p. 212)
+## 3. Swarm Stack (p. 212)
 
 #### 1. Subindo o serviço do REGISTRY como uma stack (p. 217)
 ```
@@ -98,6 +98,54 @@ docker-compose -f dockercoins.yml push
 ```
 docker stack deploy --compose-file dockercoins.yml dockercoins
 ```
+
+## 4. Parte 2 (p. 232)
+
+#### 1. Montando as coisas para continuar (p. 234)
+```
+docker swarm init --advertise-addr $(hostname -i)
+TOKEN=$(docker swarm join-token -q manager)
+NODE1IP=<ip_do_node1>
+for N in <lista_dos_ips_dos_nodes>; do
+  DOCKER_HOST=tcp://$N:2375 docker swarm join --token $TOKEN $NODE1IP:2377
+done
+git clone https://github.com/jpetazzo/container.training
+cd container.training/stacks
+docker stack deploy --compose-file registry.yml registry
+docker-compose -f dockercoins.yml build
+docker-compose -f dockercoins.yml push
+docker stack deploy --compose-file dockercoins.yml dockercoins
+```
+
+## 5. Breaking into an overlay network (p. 239)
+Requer o ambiente [montado](#1-montando-as-coisas-para-continuar-p-234)
+
+#### 1. Criando um container "faz nada" (p. 234)
+```
+docker service create --network dockercoins_default --name debug --constraint node.hostname==$HOSTNAME alpine sleep 1000000000
+```
+
+#### 2. Entrando no container criado pelo serviço no passo [anterior](#1-criando-um-container-faz-nada-p-234) (p. 242)
+```
+docker exec -it $(docker ps -q --filter label=com.docker.swarm.service.name=debug) sh
+```
+
+#### 3. Sobre VIP e DNSRR (p. 243)
+1. Instalando algumas ferramentas
+```
+apk add --update curl apache2-utils drill
+```
+2. `drill rng` vai retornar uma saída igual ao do *dig* mostrando o endereço VIP do serviço *rng*;
+3. O serviço pode ser publicado usando VIP ou DNSRR:
++ com VIP, temos um IP virtual e um balanceador de carga baseado no IPVS;
++ com o DNSRR, o nome do serviço nos endereços IP nos nodes onde existem suas tarefas; e
++ Use `docker service create --endpoint-mode [VIP|DNSRR]` para ecolher entre os dois modos.
+4. `drill tasks.rng` retorna o endereço IP de todos os container onde o *rng* está sendo executado;
+
+
+
+------------------------------------------------------------------------------------------------------
+
 
 # MarkMaker
 
