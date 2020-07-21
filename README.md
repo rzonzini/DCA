@@ -109,6 +109,7 @@ NODE1IP=<ip_do_node1>
 for N in <lista_dos_ips_dos_nodes>; do
   DOCKER_HOST=tcp://$N:2375 docker swarm join --token $TOKEN $NODE1IP:2377
 done
+DOCKER_HOST=tcp://<ip_node_worker>:2375 docker swarm join --token $(docker swarm join-token -q worker) $NODE1IP:2377
 git clone https://github.com/jpetazzo/container.training
 cd container.training/stacks
 docker stack deploy --compose-file registry.yml registry
@@ -143,7 +144,95 @@ apk add --update curl apache2-utils drill
    - Use `docker service create --endpoint-mode [VIP|DNSRR]` para ecolher entre os dois modos.
 4. `drill tasks.rng` retorna o endereço IP de todos os container onde o *rng* está sendo executado;
 
+## 6. Securing overlay networks (p. 263)
 
+#### 1. Criando redes (p. 265)
+
+- criando uma rede insegura
+```
+docker network create insecure --driver overlay --attachable
+```
+
+- criando uma rede segura
+```
+docker network create secure --opt encrypted --driver overlay --attachable
+```
+
+#### 2. Subindo webservice (p. 266)
+```
+docker service create --name web --network secure --network insecure --constraint node.hostname!=node1 nginx
+```
+
+#### 3. Sniff o tráfego HTTP (p. 266)
+```
+docker run --net host nicolaka/netshoot ngrep -tpd eth0 HTTP
+```
+- no Play-With-Docker, para ver o trafego do host com a internet efetivar o sniff do acesso a uma página na web, por exemplo `curl www.pudim.com.br`, o comando acima deve escutar a interface *eth1*. A *eth0*, é o tráfego do entre os nós do cluster.
+- outro bom bizu é parar a aplicação *worker* do serviço *dockercoins*: `docker service update dockercoins_worker --replicas=0`
+- sniffando a comunicação da rede *insecure*, criada em [Criando redes]{#1-criando-redes-p-265}, com `docker run --rm --net insecure nicolaka/netshoot curl web` é possível ver fragmentos HTTP
+- sniffando a comunicação da rede *secure*, criada em [Criando redes]{#1-criando-redes-p-265}, com `docker run --rm --net secure nicolaka/netshoot curl web` nenhum fragmento HTTP é exibido, aparecendo somente os '#' referentes a cada pacote que está atravesando a interface
+
+## 7. Updating services (p. 273)
+
+#### 1. Atualizando um único serviço com *service update* (p. 275)
+```
+cd ~/container.training/stacks/dockercoins
+export REGISTRY=127.0.0.1:5000
+export TAG=v0.2
+IMAGE=$REGISTRY/dockercoins_webui:$TAG
+docker build -t $IMAGE webui/
+docker push $IMAGE
+docker service update dockercoins_webui --image $IMAGE
+```
+
+#### 2. Atualizando serviços com *stack update* (p. 276)
+
+- fazendo uma alteração no código
+
+```
+sed -i "s/15px/50px/" dockercoins/webui/files/index.html
+```
+- criando uma nova versão com essa alteração e atializando a *stack*
+
+```
+export TAG=v0.2
+docker-compose -f dockercoins.yml build
+docker-compose -f dockercoins.yml push
+docker stack deploy -c dockercoins.yml dockercoins
+```
+
+## 7. Rolling updates (p. 282)
+
+#### 1. Executando a atualização (p. 283)
+
+- legal usar `docker events` para acompanhar as ações do swarm
+- `--force` pode ser usado pra trocar containers que não sofreram mudança na configuração
+
+```
+docker service scale dockercoins_hasher=7
+docker service update --image 127.0.0.1:5000/hasher:v0.1 dockercoins_hasher
+```
+
+#### 2. Alterando a política de atualização (p. 283)
+
+```
+docker service update --update-parallelism 2 --update-max-failure-ratio .25 dockercoins_hasher
+```
+
+- a alteração da política de atualização também pode ser feita no arquivo Compose com a chave `update_config`, dentro da chave `deploy`
+
+#### 3. Dando última forma na atualização (p. 286)
+
+```
+docker service rollback dockercoins_webui
+```
+
+- pode ser executado no arquivo Compose, usando a flag `--rollback` em `service update` ou `docker service rollback`
+- cada `docker service update` gera uma nova definição que pode ser observada em `PreviousSpec` no detalhamento do servico (`docker service inspect`)
+
+## 8. Health checks e rollback automático (p. 290)
+
+## 9. Feramentas para debugar o SwarmKit (p. 301)
 
 ------------------------------------------------------------------------------------------------------
 
