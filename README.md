@@ -201,7 +201,7 @@ docker-compose -f dockercoins.yml push
 docker stack deploy -c dockercoins.yml dockercoins
 ```
 
-## 7. Rolling updates (p. 282)
+## 8. Rolling updates (p. 282)
 
 #### 1. Executando a atualização (p. 283)
 
@@ -230,9 +230,9 @@ docker service rollback dockercoins_webui
 - pode ser executado no arquivo Compose, usando a flag `--rollback` em `service update` ou `docker service rollback`
 - cada `docker service update` gera uma nova definição que pode ser observada em `PreviousSpec` no detalhamento do servico (`docker service inspect`)
 
-## 8. Health checks e rollback automático (p. 290)
+## 9. Health checks e rollback automático (p. 290)
 
-## 9. Feramentas para debugar o SwarmKit (p. 301)
+## 10. Feramentas para debugar o SwarmKit (p. 301)
 
 ------------------------------------------------------------------------------------------------------
 
