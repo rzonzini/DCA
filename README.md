@@ -234,6 +234,150 @@ docker service rollback dockercoins_webui
 
 ## 10. Feramentas para debugar o SwarmKit (p. 301)
 
+## 11. Secrets management and encryption at rest (p. 313)
+
+#### 1. Criar o *secret* (p. 316)
+
+- Usando uma senha fraca mas é didático para mostrar a sintaxe do comando
+```
+echo love | docker secret create hackme -
+```
+
+- Uma boa maneira de criar a senha é usando um valor aleatório assossiado a um algorítomo de criptografia, por exemplo, o base64
+```
+base64 /dev/random | head -c16 | docker secret create arewesecureyet -
+```
+
+#### 2. Usando o *secret* (p. 318)
+
+```
+docker service create --secret hackme --secret arewesecureyet --name dummyservice --constraint node.hostname==$HOSTNAME alpine sleep 10000000000
+```
+
+#### 3. Acessando o *secret* (p. 319)
+
+- O *secret* passado para o *service* fica armazenado no diretório `/run/secrets`. Então, acessando o container criado e consultando o conteúdo desse diretório, podemos ver os arquivos que tem o *secret* criado como seu conteúdo.
+
+```
+docker exec -it $(docker ps -q --filter label=com.docker.swarm.service.name=dummyservice) grep -r . /run/secrets
+```
+
+#### 4. Alterando o *secret* de um serviço (p. 321)
+
+- *secrets* podem ser mapeados com nomes diferentes. No exmplo abaixo, `--secret-add source=arewesecureyet,target=hackme`, mapeia o secret *hackme* para usar o mesmo conteúdo do secret *arewesecureyet*
+
+```
+docker service update dummyservice --secret-rm hackme
+docker service update dummyservice --secret-add source=arewesecureyet,target=hackme
+docker exec -it $(docker ps -q --filter label=com.docker.swarm.service.name=dummyservice) grep -r . /run/secrets
+/run/secrets/arewesecureyet:hUMqA5X4Du8dL+xJ
+/run/secrets/hackme:hUMqA5X4Du8dL+xJ
+```
+
+##### 5. Trancando o cluster (p. 325)
+
+- A senha gerada é requerida para "destrancar" o cluster e permitir a execução executar comandos de administração do swarm
+- O serviço do *dockerd* deve ser reiniciado para efetivar a mudança, por exemplo, com `systemctl restart docker`
+
+```
+docker swarm update --autolock=true
+Swarm updated.
+To unlock a swarm manager after it restarts, run the `docker swarm unlock`
+command and provide the following key:
+
+    SWMKEY-1-flfY4EUJYSOlZoVu+6OT3qJ+xzTrZMZ/oF6PL0MfkTg
+
+Please remember to store this key in a password manager, since without it you
+will not be able to restart the manager.
+```
+
+- A senha gerada é solicitada para destrancar o cluster
+
+```
+docker swarm unlock
+```
+
+- Para recriar a senha mas atenção: se existir algum node "bloqueado" quando a senho for recriada, esse node não consegirá ingressar no cluster!
+
+```
+docker swarm unlock-key --rotate
+```
+
+- Para recuperar a senha, desde que exista, ao menos um node manager "destravado", a partir dele:
+
+```
+docker swarm unlock-key -q
+```
+
+- Para desbloquar o node manager permanentemente:
+
+```
+docker swarm update --autolock=false
+```
+
+- Sempre é possível fazer o node deixar de ser um manager e assumir a função de worker: `docker node demote <nome_do_node>` e, depois de `docker swarm leave` no node agora worker, em algum manager `docker node rm <nome_do_node>`
+
+## 12. Menos privilégio (p. 333)
+
+## 13. Log centralizado (p. 343)
+
+## 14. Configurando o ELK para armazenar logs (p. 347)
+
+1. _ElasticSearch: armazena e indexa os logs_
+2. _LogStash: recebe os logs_
+3. _Kibana: web UI_
+
+#### 1. Sobindo os serviços da stack (p. 350) 
+
+```
+docker network create --driver overlay logging
+docker service create --network logging --name elasticsearch elasticsearch:2.4
+docker service create --network logging --name kibana --publish 5601:5601 -e ELASTICSEARCH_URL=http://elasticsearch:9200 kibana:4.6
+docker service create --network logging --name logstash -p 12201:12201/udp logstash:2.4 -e "$(cat ~/container.training/elk/logstash.conf)"
+```
+
+- vendo o heartbeat
+
+```
+docker service logs logstash -f
+```
+
+- O jpetazzo fez um (docker-compose)[https://github.com/jpetazzo/container.training/blob/master/stacks/elk.yml] com essa stack que pode ser consultado na (página 355)[https://container.training/swarm-selfpaced.yml.html#355]
+
+#### 2. Verificando o funcionamento (p. 356)
+
+- Vendo os logs do *logstash*
+
+```
+docker service logs --follow --tail 1 logstash
+```
+
+- Em paralelo, em uma nova sessão porque a anterior está travada com o logs, subi um container qualquer usando o driver `--log-driver gelf` *gelf* e passando o socket `--log-opt gelf-address=udp://127.0.0.1:12201` onde o *logstash* está recebendo os dados, os logs enviados podem ser vistos na janela anterior 
+
+```
+docker run --log-driver gelf --log-opt gelf-address=udp://127.0.0.1:12201 --rm alpine echo hello
+```
+
+#### 3. Enviando os logs de um serviço (p. 358)
+
+- se `docker service logs --follow --tail 1 logstash` ainda estiver aberto, os log do serviço podem ser vistos
+
+```
+docker service create --name alpine --log-driver gelf --log-opt gelf-address=udp://127.0.0.1:12201 alpine echo hello
+```
+
+- esse serviço vai ficar em loop, sendo restado infinitamente, até que uma condição de restart seja definida. As condições possíveis são: *none*, *any* e *on-error*; ainda é possível usar oputros parâmetros como: *--restart-delay*, *--restart-max-attempts* e *--restart-window*
+
+```
+docker service update alpine --restart-condition none
+```
+
+- atualizar serviços preexistentes para enviar logs para o *logstash*
+
+```
+docker service update dockercoins_rng --log-driver gelf --log-opt gelf-address=udp://127.0.0.1:12201
+```
+
 ------------------------------------------------------------------------------------------------------
 
 
