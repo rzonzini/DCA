@@ -342,7 +342,7 @@ docker service create --network logging --name logstash -p 12201:12201/udp logst
 docker service logs logstash -f
 ```
 
-- O jpetazzo fez um (docker-compose)[https://github.com/jpetazzo/container.training/blob/master/stacks/elk.yml] com essa stack que pode ser consultado na (página 355)[https://container.training/swarm-selfpaced.yml.html#355]
+- O jpetazzo fez um [docker-compose](https://github.com/jpetazzo/container.training/blob/master/stacks/elk.yml) com essa stack que pode ser consultado na [página 355](https://container.training/swarm-selfpaced.yml.html#355)
 
 #### 2. Verificando o funcionamento (p. 356)
 
