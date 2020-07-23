@@ -323,9 +323,9 @@ docker swarm update --autolock=false
 
 ## 14. Configurando o ELK para armazenar logs (p. 347)
 
-1. _ElasticSearch: armazena e indexa os logs_
-2. _LogStash: recebe os logs_
-3. _Kibana: web UI_
+> 1. **ElasticSearch**: armazena e indexa os logs
+> 2. **LogStash**: recebe os logs
+> 3. **Kibana**: web UI
 
 #### 1. Sobindo os serviços da stack (p. 350) 
 
